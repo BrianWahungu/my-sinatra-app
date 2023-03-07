@@ -1,15 +1,16 @@
 require 'sinatra'
 require 'json'
+require './database'
 
-# Your backend logic here
-# For example, you could have a function to search for movies in your database
+# Search for movies in the database
 def search_movies(query)
-  # Return dummy data for now
-  [
-    { title: "The Godfather", year: 1972 },
-    { title: "The Shawshank Redemption", year: 1994 },
-    { title: "The Dark Knight", year: 2008 }
-  ]
+  movies = DB.execute("SELECT * FROM movies WHERE title LIKE ?", "%#{query}%")
+  movies.map { |m| { id: m[0], title: m[1], year: m[2] } }
+end
+
+# Add a new movie to the database
+def add_movie(title, year)
+  DB.execute("INSERT INTO movies (title, year) VALUES (?, ?)", title, year)
 end
 
 # Define the routes for your app
@@ -21,4 +22,11 @@ get '/movies/search/:query' do
   query = params[:query]
   movies = search_movies(query)
   movies.to_json
+end
+
+post '/movies/add' do
+  title = params[:title]
+  year = params[:year]
+  add_movie(title, year)
+  "Movie added successfully"
 end
